@@ -21,12 +21,15 @@ class ParityAnalyzer:
             previous_node = node_name
 
     def analyze(self):
-        """Perform even/odd analysis on the CFG."""
+        """Perform even/odd analysis on the CFG and collect results for each line."""
         variable_states = {}
+        analysis_report = []
         for node in nx.topological_sort(self.cfg):
             code = self.cfg.nodes[node]["code"]
-            self._analyze_statement(code, variable_states)
-        return variable_states
+            result = self._analyze_statement(code, variable_states)
+            # Store the results after each statement
+            analysis_report.append((node, code, result.copy()))
+        return analysis_report
 
     def _analyze_statement(self, statement, variable_states):
         if "=" in statement:
@@ -55,7 +58,7 @@ class ParityAnalyzer:
                     elif op == "*":
                         variable_states[var] = self._apply_multiplication(parity1, parity2)
         
-        print(f"Statement: {statement} - Variable States: {variable_states}")
+        return variable_states
 
     def _get_parity(self, value):
         return "Even" if value % 2 == 0 else "Odd"
