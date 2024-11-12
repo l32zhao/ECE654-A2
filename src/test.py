@@ -10,7 +10,8 @@ class TestParityAnalyzer(unittest.TestCase):
         x = 4
         y = x + 2
         """
-        result = self.analyzer.analyze(code)
+        self.analyzer.build_cfg(code)
+        result = self.analyzer.analyze()
         self.assertEqual(result['x'], 'Even')
         self.assertEqual(result['y'], 'Even')
 
@@ -19,9 +20,24 @@ class TestParityAnalyzer(unittest.TestCase):
         x = 5
         y = x + 2
         """
-        result = self.analyzer.analyze(code)
+        self.analyzer.build_cfg(code)
+        result = self.analyzer.analyze()
         self.assertEqual(result['x'], 'Odd')
         self.assertEqual(result['y'], 'Odd')
+
+    def test_mixed_operations(self):
+        code = """
+        a = 3
+        b = 6
+        c = a + b
+        d = a * b
+        """
+        self.analyzer.build_cfg(code)
+        result = self.analyzer.analyze()
+        self.assertEqual(result['a'], 'Odd')
+        self.assertEqual(result['b'], 'Even')
+        self.assertEqual(result['c'], 'Odd')  # Odd + Even = Odd
+        self.assertEqual(result['d'], 'Even')  # Odd * Even = Even
 
 if __name__ == "__main__":
     unittest.main()
