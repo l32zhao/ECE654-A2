@@ -29,25 +29,32 @@ class ParityAnalyzer:
         return variable_states
 
     def _analyze_statement(self, statement, variable_states):
-        # Analyze assignment operations
         if "=" in statement:
             var, expr = statement.split("=")
             var, expr = var.strip(), expr.strip()
-            # Check if expr is a digit
+            
+            # Check if expr is a digit (constant)
             if expr.isdigit():
                 variable_states[var] = self._get_parity(int(expr))
+            # If expr is a variable directly, assign its parity
             elif expr in variable_states:
                 variable_states[var] = variable_states[expr]
             else:
-                match = re.match(r"(\w+)\s*([\+\*])\s*(\w+)", expr)
+                # Regex to match simple binary expressions
+                match = re.match(r"(\w+)\s*([\+\*])\s*(\w+|\d+)", expr)
                 if match:
                     var1, op, var2 = match.groups()
-                    parity1 = variable_states.get(var1, "Top")
-                    parity2 = variable_states.get(var2, "Top")
+
+                    # Determine the parity of var1 and var2 (either from variable states or constants)
+                    parity1 = variable_states.get(var1, "Top") if not var1.isdigit() else self._get_parity(int(var1))
+                    parity2 = variable_states.get(var2, "Top") if not var2.isdigit() else self._get_parity(int(var2))
+
+                    # Apply the operation and update variable state
                     if op == "+":
                         variable_states[var] = self._apply_addition(parity1, parity2)
                     elif op == "*":
                         variable_states[var] = self._apply_multiplication(parity1, parity2)
+        
         print(f"Statement: {statement} - Variable States: {variable_states}")
 
     def _get_parity(self, value):
